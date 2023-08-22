@@ -68,7 +68,7 @@ console.log("-- Top supported Audio : ", supportedAudios[0]);
 console.log("-- All supported Videos : ", supportedVideos);
 console.log("-- All supported Audios : ", supportedAudios);
 
-크롬 타입 결정 코드
+// 크롬 타입 결정 코드
 
 if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) {
 this.fileName = "video.webm";
@@ -84,4 +84,105 @@ this.mimeType = "video/webm";
 this.fileName = "video.mp4";
 this.mimeType = "video/mp4";
 }
+```
+### 타입 추출 코드 
+```javascript
+`if (navigator.mediaDevices) {
+  console.log("getUserMedia supported.");
+
+  const constraints = {` 
+
+`audio: true,`
+
+ `video: {aspectRatio: 1.77 }`
+
+`};`
+
+  `let chunks = [];
+
+  navigator.mediaDevices
+    .getUserMedia(constraints)
+    .then((stream) => {
+      const mediaRecorder = new MediaRecorder(stream);
+
+      visualize(stream);
+
+      record.onclick = () => {
+        mediaRecorder.start();
+        console.log(mediaRecorder.state);
+        console.log("recorder started");
+        record.style.background = "red";
+        record.style.color = "black";
+      };
+
+      stop.onclick = () => {
+        mediaRecorder.stop();
+        console.log(mediaRecorder.state);
+        console.log("recorder stopped");
+        record.style.background = "";
+        record.style.color = "";
+      };
+
+      mediaRecorder.onstop = (e) => {
+        console.log("data available after MediaRecorder.stop() called.");
+
+        const clipName = prompt("Enter a name for your sound clip");
+
+        const clipContainer = document.createElement("article");
+        const clipLabel = document.createElement("p");
+        const audio = document.createElement("audio");
+        const deleteButton = document.createElement("button");
+
+        clipContainer.classList.add("clip");
+        audio.setAttribute("controls", "");
+        deleteButton.textContent = "Delete";
+        clipLabel.textContent = clipName;
+
+        clipContainer.appendChild(audio);
+        clipContainer.appendChild(clipLabel);
+        clipContainer.appendChild(deleteButton);
+        soundClips.appendChild(clipContainer);
+
+        audio.controls = true;
+        const blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
+        chunks = [];
+        const audioURL = URL.createObjectURL(blob);
+        audio.src = audioURL;
+        console.log("recorder stopped");
+
+        deleteButton.onclick = (e) => {
+          const evtTgt = e.target;
+          evtTgt.parentNode.parentNode.removeChild(evtTgt.parentNode);
+        };
+      };
+
+      mediaRecorder.ondataavailable = (e) => {
+        chunks.push(e.data);
+      };
+    })
+    .catch((err) => {
+      console.error(`The following error occurred: ${err}`);`
+
+errorCheckExamS(error);
+    `});
+}`
+
+errorCheckExamS(error) {
+const name = [error.name](http://error.name/);
+if (
+name === "NotFoundError" ||
+name === "OverconstrainedError" ||
+name === "NotReadableError" ||
+name === "NotAllowedError"
+) {
+const i18nCode = `S_ModalError.${name}`;
+if (this.$i18n.te(i18nCode)) {
+this.modalError(this.$i18n.t(i18nCode), "/exams_setting");
+} else {
+this.modalError(this.$i18n.t("modalError.default"), "/");
+}
+} else {
+this.modalError(this.$i18n.t("modalError.default"), "/");
+}
+},
 ```
