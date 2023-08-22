@@ -1,4 +1,4 @@
-// RegExp pattern
+// RegExp pattern from https://taegon.kim/archives/9919
 function ch2pattern(ch) {
   const offset = 44032; /* '가'의 코드 */
   // 한국어 음절
