@@ -87,13 +87,16 @@ this.mimeType = "video/mp4";
 ```
 ### 영상 코드(https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
 ```javascript
-const constraints = {` 
+const constants = {};
+constants.constraints = {
   audio: true,`
   video: {
     width: {ideal: 640},
     height: {ideal: 360},
   },
 };
+constants.videoBitsPerSecond = 1000000;
+export default constants;
 ```
 ```
   `let chunks = [];
