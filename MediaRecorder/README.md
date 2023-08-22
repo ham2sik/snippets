@@ -236,31 +236,11 @@ export default constants;
       }
     },
 ```
-
-errorCheckExamS(error) {
-const name = [error.name](http://error.name/);
-if (
-name === "NotFoundError" ||
-name === "OverconstrainedError" ||
-name === "NotReadableError" ||
-name === "NotAllowedError"
-) {
-const i18nCode = `S_ModalError.${name}`;
-if (this.$i18n.te(i18nCode)) {
-this.modalError(this.$i18n.t(i18nCode), "/exams_setting");
-} else {
-this.modalError(this.$i18n.t("modalError.default"), "/");
-}
-} else {
-this.modalError(this.$i18n.t("modalError.default"), "/");
-}
-},
-```
-NotFoundError:
+* NotFoundError:
 "사용할 수 있는 장치가 없습니다. 기기 내 카메라/마이크 장치를 확인해주세요. ",
-OverconstrainedError:
+* OverconstrainedError:
 "지원하지 않는 해상도입니다. 다른 기기에서 응시하시기 바랍니다. ",
-NotReadableError:
+* NotReadableError:
 "다른 브라우저 또는 기기에서 카메라/마이크 등 장치를 사용중이거나 사용가능한 장치가 없습니다. 기기 내 카메라/마이크 장치를 확인해주세요. ",
-NotAllowedError:
+* NotAllowedError:
 "카메라/마이크 권한 설정을 확인해주세요. 권한설정을 차단한 경우 브라우저 설정에서 카메라/마이크 권한을 허용해야 합니다. ",
