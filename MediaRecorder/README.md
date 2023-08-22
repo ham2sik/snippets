@@ -1,4 +1,4 @@
-# MediaRecorder
+# MediaRecorder(https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder)
 ## 업로드 인코딩
 ### YouTube 기준 권장 업로드 인코딩: https://support.google.com/youtube/answer/1722171?hl=ko#zippy=%2C%EB%B9%84%ED%8A%B8-%EC%A0%84%EC%86%A1%EB%A5%A0
 ### YouTube 기준 라이브 인코더 설정, 비트 전송률, 해상도: https://support.google.com/youtube/answer/2853702?hl=ko#zippy=%2Cp
@@ -14,7 +14,7 @@
 * 426x240, 700Kbps: 녹화영상 5.2MB, 업로드용량 6.6MB
 자체 암호화로 업로드 용량 10MB 제한
 ## 코드
-### 타입 추출 코드 
+### 타입 추출 코드(https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder/isTypeSupported_static)
 ```javascript
 const videoTypes = ["webm", "ogg", "mp4", "x-matroska"];
 const audioTypes = ["webm", "ogg", "mp3", "x-matroska"];
@@ -85,19 +85,17 @@ this.fileName = "video.mp4";
 this.mimeType = "video/mp4";
 }
 ```
-### 타입 추출 코드 
+### 영상 코드(https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
 ```javascript
-`if (navigator.mediaDevices) {
-  console.log("getUserMedia supported.");
-
-  const constraints = {` 
-
-`audio: true,`
-
- `video: {aspectRatio: 1.77 }`
-
-`};`
-
+const constraints = {` 
+  audio: true,`
+  video: {
+    width: {ideal: 640},
+    height: {ideal: 360},
+  },
+};
+```
+```
   `let chunks = [];
 
   navigator.mediaDevices
