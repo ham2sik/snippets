@@ -96,64 +96,146 @@ constants.videoBitsPerSecond = 1000000;
 export default constants;
 ```
 ```javascript
-  navigator.mediaDevices
-    .getUserMedia(constants.constraints)
-    .then((stream) => {
-      const mediaRecorder = new MediaRecorder(stream);
+    init() {
+      ...
+      // 카메라, 마이크 권한 요청
+      navigator.mediaDevices
+        .getUserMedia(constants.constraints)
+        .then((stream) => {
+          // this.getSupportedInfo();
 
-      visualize(stream);
+          if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) {
+            this.fileName = "video.webm";
+            this.mimeType = "video/webm;codecs=vp9";
+          } else if (MediaRecorder.isTypeSupported("video/webm;codecs=h264")) {
+            this.fileName = "video.webm";
+            this.mimeType = "video/webm;codecs=h264";
+          } else if (MediaRecorder.isTypeSupported("video/webm")) {
+            this.fileName = "video.webm";
+            this.mimeType = "video/webm";
+          } else if (MediaRecorder.isTypeSupported("video/mp4")) {
+            //Safari 14.0.2 has an EXPERIMENTAL version of MediaRecorder enabled by default
+            this.fileName = "video.mp4";
+            this.mimeType = "video/mp4";
+          } else {
+            this.modalError(this.$i18n.t("S_ModalError.mimeTypeNull"), "/");
+            return;
+          }
 
-      record.onclick = () => {
-        mediaRecorder.start();
+          this.bindVideoStream(stream);
+          this.runExam();
+        })
+        .catch((error) => {
+          this.errorCheckExamS(error);
+        });
+},
+```
+```javascript
+    uploadRecord() {
+      this.isSaving = true;
+
+      const blob = new Blob(this.recordedBlobs, {
+        type: this.mimeType,
+      });
+      // console.log("make blob", blob);
+
+      const file = new File([blob], this.fileName, {
+        type: this.mimeType,
+      });
+      // console.log("make file", file);
+      // const url = window.URL.createObjectURL(file);
+      // console.log("url", url);
+
+      const formData = new FormData();
+      formData.append(
+        "questionIdx",
+        this.answers[this.pageIndex - 1].questionIdx,
+      );
+      formData.append("answerIdx", this.answers[this.pageIndex - 1].answerIdx);
+      formData.append(
+        "selectedAnswerIdx",
+        this.answers[this.pageIndex - 1].selectedAnswerIdx,
+      );
+      formData.append("partIdx", this.partIdx);
+      formData.append("lastPageNo", this.pageIndex + 1);
+      formData.append("file", file);
+      // console.log(formData);
+      // axios
+      axios
+        .post("/upload", formData, {
+          headers: { "Content-Type": `multipart/form-data` },
+        })
+        .then((res) => {
+          if (!this.isLastpage) {
+            this.isSaving = false;
+            this.isDisabled = true;
+            this.pageIndex += 1;
+            // 세션 저장 로직(새로고침 대응)
+            this.questions.last_page_no = this.pageIndex;
+            sessionStorage.setItem("PCTR", JSON.stringify(this.questions));
+
+            this.runExam();
+          } else {
+            // 종료 status
+          }
+        })
+        .catch((error) => {
+          this.isSaving = false;
+          this.errorCheck(error);
+        });
+    },
+    bindVideoStream(stream) {
+      this.stream = stream;
+      document.getElementById("record").srcObject = stream;
+    },
+    startRecord() {
+      try {
+        this.mediaRecorder = new MediaRecorder(this.stream, {
+          mimeType: this.mimeType,
+          videoBitsPerSecond: constants.videoBitsPerSecond,
+        });
+
+        this.mediaRecorder.ondataavailable = this.handleDataAvailable;
+        this.mediaRecorder.start();
+      } catch (e) {
+        this.modalError(
+          this.$i18n.t("S_ModalError.recordFail"),
+          "/exams_setting",
+        );
+      }
+    },
+    stopRecord() {
+      clearInterval(this.timer.progressTimer);
+      this.mediaRecorder.stop();
+      this.mediaRecorder.onstop = () => {
+        this.uploadRecord();
       };
-
-      stop.onclick = () => {
-        mediaRecorder.stop();
-      };
-
-      mediaRecorder.onstop = (e) => {
-        console.log("data available after MediaRecorder.stop() called.");
-
-        const clipName = prompt("Enter a name for your sound clip");
-
-        const clipContainer = document.createElement("article");
-        const clipLabel = document.createElement("p");
-        const audio = document.createElement("audio");
-        const deleteButton = document.createElement("button");
-
-        clipContainer.classList.add("clip");
-        audio.setAttribute("controls", "");
-        deleteButton.textContent = "Delete";
-        clipLabel.textContent = clipName;
-
-        clipContainer.appendChild(audio);
-        clipContainer.appendChild(clipLabel);
-        clipContainer.appendChild(deleteButton);
-        soundClips.appendChild(clipContainer);
-
-        audio.controls = true;
-        const blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
-        chunks = [];
-        const audioURL = URL.createObjectURL(blob);
-        audio.src = audioURL;
-        console.log("recorder stopped");
-
-        deleteButton.onclick = (e) => {
-          const evtTgt = e.target;
-          evtTgt.parentNode.parentNode.removeChild(evtTgt.parentNode);
-        };
-      };
-
-      mediaRecorder.ondataavailable = (e) => {
-        chunks.push(e.data);
-      };
-    })
-    .catch((err) => {
-      console.error(`The following error occurred: ${err}`);`
-
-errorCheckExamS(error);
-    `});
-}`
+    },
+```
+```javascript
+    /**
+     * API error시 체크
+     * @param {Object} error error data
+     */
+    errorCheckExamS(error) {
+      const name = error.name;
+      if (
+        name === "NotFoundError" ||
+        name === "OverconstrainedError" ||
+        name === "NotReadableError" ||
+        name === "NotAllowedError"
+      ) {
+        const i18nCode = `S_ModalError.${name}`;
+        if (this.$i18n.te(i18nCode)) {
+          this.modalError(this.$i18n.t(i18nCode), "/exams_setting");
+        } else {
+          this.modalError(this.$i18n.t("modalError.default"), "/");
+        }
+      } else {
+        this.modalError(this.$i18n.t("modalError.default"), "/");
+      }
+    },
+```
 
 errorCheckExamS(error) {
 const name = [error.name](http://error.name/);
@@ -174,3 +256,11 @@ this.modalError(this.$i18n.t("modalError.default"), "/");
 }
 },
 ```
+NotFoundError:
+"사용할 수 있는 장치가 없습니다. 기기 내 카메라/마이크 장치를 확인해주세요. ",
+OverconstrainedError:
+"지원하지 않는 해상도입니다. 다른 기기에서 응시하시기 바랍니다. ",
+NotReadableError:
+"다른 브라우저 또는 기기에서 카메라/마이크 등 장치를 사용중이거나 사용가능한 장치가 없습니다. 기기 내 카메라/마이크 장치를 확인해주세요. ",
+NotAllowedError:
+"카메라/마이크 권한 설정을 확인해주세요. 권한설정을 차단한 경우 브라우저 설정에서 카메라/마이크 권한을 허용해야 합니다. ",
