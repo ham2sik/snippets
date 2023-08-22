@@ -16,80 +16,77 @@
 ## 코드
 ### 타입 추출 코드(https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder/isTypeSupported_static)
 ```javascript
-const videoTypes = ["webm", "ogg", "mp4", "x-matroska"];
-const audioTypes = ["webm", "ogg", "mp3", "x-matroska"];
-const codecs = [
-"should-not-be-supported",
-"vp9",
-"vp9.0",
-"vp8",
-"vp8.0",
-"avc1",
-"av1",
-"h265",
-"h.265",
-"h264",
-"h.264",
-"opus",
-"pcm",
-"aac",
-"mpeg",
-"mp4a",
-];
-const getSupportedMimeTypes = function (media, types, codecs) {
-const isSupported = MediaRecorder.isTypeSupported;
-const supported = [];
-types.forEach((type) => {
-const mimeType = `${media}/${type}`;
-codecs.forEach((codec) =>
-[
-`${mimeType};codecs=${codec}`,
-`${mimeType};codecs=${codec.toUpperCase()}`,
-].forEach((variation) => {
-if (isSupported(variation)) supported.push(variation);
-}),
-);
-if (isSupported(mimeType)) supported.push(mimeType);
-});
-return supported;
-};
-const supportedVideos = getSupportedMimeTypes(
-"video",
-videoTypes,
-codecs,
-);
-const supportedAudios = getSupportedMimeTypes(
-"audio",
-audioTypes,
-codecs,
-);
-console.log("-- Top supported Video : ", supportedVideos[0]);
-console.log("-- Top supported Audio : ", supportedAudios[0]);
-console.log("-- All supported Videos : ", supportedVideos);
-console.log("-- All supported Audios : ", supportedAudios);
-
-// 크롬 타입 결정 코드
-
-if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) {
-this.fileName = "video.webm";
-this.mimeType = "video/webm;codecs=vp9";
-} else if (MediaRecorder.isTypeSupported("video/webm;codecs=h264")) {
-this.fileName = "video.webm";
-this.mimeType = "video/webm;codecs=h264";
-} else if (MediaRecorder.isTypeSupported("video/webm")) {
-this.fileName = "video.webm";
-this.mimeType = "video/webm";
-} else if (MediaRecorder.isTypeSupported("video/mp4")) {
-//Safari 14.0.2 has an EXPERIMENTAL version of MediaRecorder enabled by default
-this.fileName = "video.mp4";
-this.mimeType = "video/mp4";
-}
+    /**
+     * 지원하는 코덱정보를 콘솔로 제공(개발용)
+     */
+    getSupportedInfo() {
+      const videoTypes = ["webm", "ogg", "mp4", "x-matroska"];
+      const audioTypes = ["webm", "ogg", "mp3", "x-matroska"];
+      const codecs = [
+        "should-not-be-supported",
+        "vp9",
+        "vp9.0",
+        "vp8",
+        "vp8.0",
+        "avc1",
+        "av1",
+        "h265",
+        "h.265",
+        "h264",
+        "h.264",
+        "opus",
+        "pcm",
+        "aac",
+        "mpeg",
+        "mp4a",
+      ];
+      // eslint-disable-next-line no-shadow
+      const getSupportedMimeTypes = function (media, types, codecs) {
+        const isSupported = MediaRecorder.isTypeSupported;
+        const supported = [];
+        types.forEach((type) => {
+          const mimeType = `${media}/${type}`;
+          codecs.forEach((codec) =>
+            [
+              `${mimeType};codecs=${codec}`,
+              `${mimeType};codecs=${codec.toUpperCase()}`,
+            ].forEach((variation) => {
+              if (isSupported(variation)) {
+                supported.push(variation);
+              }
+            }),
+          );
+          if (isSupported(mimeType)) {
+            supported.push(mimeType);
+          }
+        });
+        return supported;
+      };
+      const supportedVideos = getSupportedMimeTypes(
+        "video",
+        videoTypes,
+        codecs,
+      );
+      const supportedAudios = getSupportedMimeTypes(
+        "audio",
+        audioTypes,
+        codecs,
+      );
+      // eslint-disable-next-line no-console
+      console.log("-- Top supported Video : ", supportedVideos[0]);
+      // eslint-disable-next-line no-console
+      console.log("-- Top supported Audio : ", supportedAudios[0]);
+      // eslint-disable-next-line no-console
+      console.log("-- All supported Videos : ", supportedVideos);
+      // eslint-disable-next-line no-console
+      console.log("-- All supported Audios : ", supportedAudios);
+    },
 ```
 ### 영상 코드(https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
 ```javascript
 const constants = {};
 constants.constraints = {
-  audio: true,`
+  audio: true,
   video: {
     width: {ideal: 640},
     height: {ideal: 360},
@@ -98,11 +95,9 @@ constants.constraints = {
 constants.videoBitsPerSecond = 1000000;
 export default constants;
 ```
-```
-  `let chunks = [];
-
+```javascript
   navigator.mediaDevices
-    .getUserMedia(constraints)
+    .getUserMedia(constants.constraints)
     .then((stream) => {
       const mediaRecorder = new MediaRecorder(stream);
 
@@ -110,18 +105,10 @@ export default constants;
 
       record.onclick = () => {
         mediaRecorder.start();
-        console.log(mediaRecorder.state);
-        console.log("recorder started");
-        record.style.background = "red";
-        record.style.color = "black";
       };
 
       stop.onclick = () => {
         mediaRecorder.stop();
-        console.log(mediaRecorder.state);
-        console.log("recorder stopped");
-        record.style.background = "";
-        record.style.color = "";
       };
 
       mediaRecorder.onstop = (e) => {
