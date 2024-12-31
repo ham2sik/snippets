@@ -1,0 +1,21 @@
+loadJs = function(url, callback) {
+    if (url == null) {
+        return false;
+    }
+    callback = callback || function() {};
+    var scriptEle = document.createElement('script');
+    // scriptEle.type = 'text/javascript'; html5 생략
+    var loaded = false;
+    scriptEle.onreadystatechange = function() {
+        if (this.readyState == 'loaded' || this.readyState == 'complete') {
+            if (loaded) return;
+            loaded = true;
+            callback();
+        }
+    };
+    scriptEle.onload = function() {
+        callback();
+    };
+    scriptEle.src = url;
+    document.getElementsByTagName('head')[0].appendChild(scriptEle);
+};
